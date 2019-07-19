@@ -2,25 +2,47 @@ import React,{Component} from 'react'
 import {connect} from 'react-redux'
 import PropTypes from 'prop-types'
 import './Employee.css';
+import Pagenation from './Pagenation'
+import LoadingSpinner from './LoadingSpinner'
 
 
 import {fetchUser,sortFunc,filterData} from './action/userAction'
 
 class Employee extends Component{
+    constructor(){
+        super();
+        this.state={
+            allEmp:[],
+            localcurrentEmpList:[],
+        }
+    }
 
     componentWillMount(){
         
      this.props.fetchUser()
-     console.log(this.props);
+     
     }
     componentWillReceiveProps(nextProps){
-        debugger;
-        if(nextProps.fltrstr){
-        const filteredElements = this.props.items
+        if(this.state.allEmp.length === 0){
+            //this.setState({allEmp:this.props.items})
+            this.setState({allEmp:nextProps.items})
+        }
+        
+        if(this.props.fltrstr !== nextProps.fltrstr){
+        const filteredElements = this.state.allEmp
         .filter(e => e.employee_name.includes(nextProps.fltrstr.name))
         console.log(filteredElements);
         this.props.filterData(filteredElements)
         }
+        if(this.props.currentPage !== nextProps.currentPage || this.props.currentPage == 1){
+            const indexOfLastEmp=nextProps.currentPage*nextProps.postPerPAge;
+            const indexOffisrtaEmp=indexOfLastEmp-nextProps.postPerPAge;
+            const currentEmpList = nextProps.items.slice(indexOffisrtaEmp,indexOfLastEmp)
+            console.log(currentEmpList);
+            this.setState({localcurrentEmpList:currentEmpList})
+        }
+        
+        
     }
     dynamictable = (emp) => {
         const {id,employee_age,employee_name,employee_salary} =emp
@@ -35,7 +57,6 @@ class Employee extends Component{
       )
     }
     _handelClick = (para,data) =>{
-        debugger;
         const sortKey = para
         const sortDesc = this.props.sortKey === para? !this.props.sortDesc : false
         
@@ -54,7 +75,10 @@ class Employee extends Component{
         })
       }
     
+    
+    
     render(){
+        debugger
         const resp=(
             <div>
             <table id='students'>
@@ -66,7 +90,7 @@ class Employee extends Component{
               <td onClick={()=>{this._handelClick('employee_salary',this.props)}}>SALARY</td>
               
               </tr>
-               {this.props.items.map(item => (
+               {this.state.localcurrentEmpList.map(item => (
                this.dynamictable(item)
                ))}
                </tbody>
@@ -78,8 +102,10 @@ class Employee extends Component{
         return(
             <div>
                 
+                {this.props.loading ? <LoadingSpinner /> : <div>{resp}
+                <Pagenation/>
+                </div>}
                 
-                {resp}
                 
                 </div>
         )
@@ -96,8 +122,11 @@ Employee.protoTypes={
 }
 
 const mapStateToProps = state => ({
+    loading:state.item.loading,
     items:state.item.items,
-    fltrstr:state.item.fltrstr
+    fltrstr:state.item.fltrstr,
+    postPerPAge:state.item.postPerPAge,
+    currentPage:state.item.currentPage
 })
 
 export default connect(mapStateToProps,{sortFunc,fetchUser,filterData})(Employee)

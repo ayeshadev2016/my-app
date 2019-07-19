@@ -1,14 +1,14 @@
+import { async } from "q";
+import employeeData from '../employeeData'
 
-export const fetchUser= () => dispatch => {
+export const fetchUser= () => async dispatch => {
     console.log('fetching');
-    fetch('http://dummy.restapiexample.com/api/v1/employees')
-    .then(resp=> resp.json())
-    .then(data=>
-        dispatch({
-            type:'FETCH_USER',
-        payload:data
-        })
-    )
+    
+    const resp= await employeeData.get();
+    debugger;
+        dispatch({type:'FETCH_USER',
+        payload:{data:resp.data,loading:false}})
+    
 }
 
 export const sortFunc= (sortKey,sortDesc,sorted)=>{
@@ -29,5 +29,11 @@ export const filterData=(data)=>{
     return{
         type:"FILTERED_DATA",
         data
+    }
+}
+export const pagenate=(currentPage)=>{
+    return{
+        type:"PAGENATE_DATA",
+        currentPage
     }
 }
